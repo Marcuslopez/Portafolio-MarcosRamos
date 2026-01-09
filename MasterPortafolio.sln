@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassDataMRL", "ClassDataMR
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPIMRL", "WebAPIMRL\WebAPIMRL.csproj", "{C22C4E98-CA30-80B6-3A54-63321724146A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassApplicationMRL", "ClassApplicationMRL\ClassApplicationMRL.csproj", "{182FD39F-E26A-F8AD-EF2C-F32B404AE9FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortalWebMRL", "PortalWebMRL\PortalWebMRL.csproj", "{6737938F-F2A5-45FC-B50B-9479FD7380DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{C22C4E98-CA30-80B6-3A54-63321724146A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C22C4E98-CA30-80B6-3A54-63321724146A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C22C4E98-CA30-80B6-3A54-63321724146A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{182FD39F-E26A-F8AD-EF2C-F32B404AE9FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{182FD39F-E26A-F8AD-EF2C-F32B404AE9FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{182FD39F-E26A-F8AD-EF2C-F32B404AE9FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{182FD39F-E26A-F8AD-EF2C-F32B404AE9FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6737938F-F2A5-45FC-B50B-9479FD7380DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6737938F-F2A5-45FC-B50B-9479FD7380DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6737938F-F2A5-45FC-B50B-9479FD7380DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6737938F-F2A5-45FC-B50B-9479FD7380DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

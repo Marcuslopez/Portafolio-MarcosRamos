@@ -1,6 +1,6 @@
 ﻿using ClassDataMRL.Interfaces;
 using ClassDomainMRL.Entities;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -35,17 +35,20 @@ namespace ClassDataMRL.Repositories
 
         }
 
+        // CRUD normal (Controllers)
         public IEnumerable<Producto> Listar()
         {
-            var lista = new List<Producto>();
-
-            using (SqlConnection cn = new SqlConnection(_connectionString))
+            using (var cn = new SqlConnection(_connectionString))
             {
-                SqlCommand cmd = new SqlCommand("sp_Productos", cn);
+                cn.Open();
+                var lista = new List<Producto>();
+
+                using var cmd = new SqlCommand("sp_Productos",cn);
+
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@Operacion", "OpList");
 
-                cn.Open();
+
                 SqlDataReader dr = cmd.ExecuteReader();
 
                 while (dr.Read())
@@ -61,24 +64,28 @@ namespace ClassDataMRL.Repositories
                         Activo = (bool)dr["Activo"]
                     });
                 }
-            }
 
-            return lista;
+
+                return lista;
+            }
         }
 
         public Producto ObtenerPorId(int idProducto)
         {
-            Producto producto = null;
-
-            using (SqlConnection cn = new SqlConnection(_connectionString))
+            using (var cn = new SqlConnection(_connectionString))
             {
-                SqlCommand cmd = new SqlCommand("sp_Productos", cn);
+                cn.Open();
+
+                Producto producto = null;
+
+                using var cmd = new SqlCommand("sp_Productos",cn);
+
                 cmd.CommandType = CommandType.StoredProcedure;
 
                 cmd.Parameters.AddWithValue("@Operacion", "OpGet");
                 cmd.Parameters.AddWithValue("@IdProducto", idProducto);
 
-                cn.Open();
+
                 SqlDataReader dr = cmd.ExecuteReader();
 
                 if (dr.Read())
@@ -94,30 +101,48 @@ namespace ClassDataMRL.Repositories
                         Activo = (bool)dr["Activo"]
                     };
                 }
-            }
 
-            return producto;
+
+                return producto;
+            }
         }
 
 
-        public void Guardar(Producto producto, string operacion)
+        public int Guardar(Producto producto, string operacion)
         {
-            using (SqlConnection cn = new SqlConnection(_connectionString))
+
+            using (var cn = new SqlConnection(_connectionString))
             {
-                SqlCommand cmd = new SqlCommand("sp_Productos", cn);
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                cmd.Parameters.AddWithValue("@Operacion", operacion);
-                cmd.Parameters.AddWithValue("@IdProducto", producto.IdProducto);
-                cmd.Parameters.AddWithValue("@Nombre", producto.Nombre);
-                cmd.Parameters.AddWithValue("@Descripcion", producto.Descripcion);
-                cmd.Parameters.AddWithValue("@Precio", producto.Precio);
-                cmd.Parameters.AddWithValue("@Stock", producto.Stock);
-                cmd.Parameters.AddWithValue("@IdCategoria", producto.IdCategoria);
-
                 cn.Open();
-                cmd.ExecuteNonQuery();
+
+                using (SqlCommand cmd = new SqlCommand("sp_Productos",cn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Operacion", operacion);
+                    cmd.Parameters.AddWithValue("@IdProducto", producto.IdProducto);
+                    cmd.Parameters.AddWithValue("@Nombre", producto.Nombre);
+                    cmd.Parameters.AddWithValue("@Descripcion", producto.Descripcion);
+                    cmd.Parameters.AddWithValue("@Precio", producto.Precio);
+                    cmd.Parameters.AddWithValue("@IdCategoria", producto.IdCategoria);
+                    cmd.Parameters.AddWithValue("@Stock", producto.Stock);
+
+                    return Convert.ToInt32(cmd.ExecuteScalar());
+                }
             }
+            
+        }
+
+        public void ActualizarStock(int idProducto,int cantidad,SqlConnection connection,SqlTransaction transaction)
+        {
+            using var cmd = new SqlCommand("sp_Productos", connection, transaction);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.AddWithValue("@Operacion", "OpUpdateStock");
+            cmd.Parameters.AddWithValue("@IdProducto", idProducto);
+            cmd.Parameters.AddWithValue("@Cantidad", cantidad);
+
+            cmd.ExecuteNonQuery();
         }
     }
 

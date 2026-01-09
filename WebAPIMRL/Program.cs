@@ -1,9 +1,13 @@
-﻿using ClassDataMRL.Interfaces;
+﻿using ClassApplicationMRL.Interfaces;
+using ClassApplicationMRL.Services;
+using ClassDataMRL.Interfaces;
 using ClassDataMRL.Repositories;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.OpenApi.Models;
+using ClassPortafolioMRL.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
+using WebAPIMRL.Middlewares;
 
 
 
@@ -14,6 +18,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+
+builder.Services.AddScoped<IOrdenRepository, OrdenRepository>();
+
+builder.Services.AddScoped<IOrdenDetalleRepository, OrdenDetalleRepository>();
+
+
+builder.Services.AddScoped<IOrdenService, OrdenService>();
+
+
 
 // Repos
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
@@ -129,10 +144,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// 👉 Manejo de excepciones
+app.UseMiddleware<ExceptionMiddleware>();
 
 
 
 app.UseAuthentication();
+
 
 // 👉 Autorización JWT
 app.UseAuthorization();

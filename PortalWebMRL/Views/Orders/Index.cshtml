@@ -1,0 +1,116 @@
+﻿@model List<PortalWebMRL.Models.OrdenListViewModel>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Órdenes</h2>
+        <div>
+            <a class="btn btn-primary" href="/Orders/Create">Nueva Orden</a>
+            <a class="btn btn-outline-secondary" href="/Account/Logout">Cerrar sesión</a>
+        </div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    @if (TempData["Ok"] != null)
+    {
+        <div class="alert alert-success">@TempData["Ok"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <table id="ordenesTable" class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>IdOrden</th>
+                <th>Nombre Cliente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Detalle</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Model)
+            {
+                <tr>
+                    <td>@o.IdOrden</td>
+                    <td>@o.ClienteNombre</td>
+                    <td>@o.FechaOrden</td>
+                    <td>@o.Total</td>
+                    <td>
+                        @if (o.Estado == "CREADA")
+                        {
+                            <span class="badge bg-secondary">CREADA</span>
+                        }
+                        else if (o.Estado == "PAGADA")
+                        {
+
+                            <span class="badge bg-success">PAGADA</span>
+                        }
+                        else if (o.Estado == "ANULADA")
+                        {
+
+                            <span class="badge bg-danger">ANULADA</span>
+                        }
+                        else
+                        {
+
+                            <span class="badge bg-dark">@o.Estado</span>
+                        }
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-info" href="/Orders/Details/@o.IdOrden">Ver</a>
+                    </td>
+                    <td>
+                        @if (o.Estado == "CREADA")
+                        {
+                            <form asp-controller="Orders" asp-action="CambiarEstado" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@o.IdOrden" />
+                                <input type="hidden" name="estado" value="PAGADA" />
+                                <button type="submit" class="btn btn-sm btn-success">Pagar</button>
+                            </form>
+
+                            <form asp-controller="Orders" asp-action="CambiarEstado" method="post" class="d-inline ms-1">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@o.IdOrden" />
+                                <input type="hidden" name="estado" value="ANULADA" />
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('¿Seguro que deseas anular esta orden?');">
+                                    Anular
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin acciones</span>
+                        }
+                    </td>
+
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#ordenesTable').DataTable({
+                language: {
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ órdenes",
+                    paginate: { next: "Siguiente", previous: "Anterior" }
+                }
+            });
+        });
+    </script>
+}

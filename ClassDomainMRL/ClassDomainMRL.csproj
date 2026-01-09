@@ -15,6 +15,7 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <LangVersion>latest</LangVersion>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -33,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -44,6 +46,13 @@
   <ItemGroup>
     <Compile Include="DTOs\Auth\LoginRequestDto.cs" />
     <Compile Include="DTOs\Auth\LoginResponseDto.cs" />
+    <Compile Include="DTOs\OrdenCreateDto.cs" />
+    <Compile Include="DTOs\OrdenDetalleCreateDto.cs" />
+    <Compile Include="DTOs\OrdenDetalleResponseDto.cs" />
+    <Compile Include="DTOs\OrdenResponseDto.cs" />
+    <Compile Include="Entities\Cliente.cs" />
+    <Compile Include="Entities\Orden.cs" />
+    <Compile Include="Entities\OrdenDetalle.cs" />
     <Compile Include="Entities\Producto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

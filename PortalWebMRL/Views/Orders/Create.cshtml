@@ -1,0 +1,183 @@
+﻿@using PortalWebMRL.Models
+@{
+    var clientes = ViewBag.Clientes as List<ClienteOptionViewModel>;
+    var productos = ViewBag.Productos as List<ProductoOptionViewModel>;
+}
+
+<div class="container mt-4">
+    <h2>Nueva Orden</h2>
+
+    @if (TempData["Ok"] != null)
+    {
+        <div class="alert alert-success">@TempData["Ok"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    <div class="row">
+        <div class="col-md-4">
+            <label class="form-label">Cliente</label>
+            <select id="clienteSelect" class="form-select">
+                <option value="">-- Seleccione --</option>
+                @if (clientes != null)
+                {
+                    foreach (var c in clientes)
+                    {
+                        <option value="@c.IdCliente">@c.Nombre</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Producto</label>
+            <select id="productoSelect" class="form-select">
+                <option value="">-- Seleccione --</option>
+                @if (productos != null)
+                {
+                    foreach (var p in productos)
+                    {
+                        <option value="@p.IdProducto"
+                                data-precio="@p.Precio"
+                                data-stock="@p.Stock">
+                            @p.Nombre (Stock: @p.Stock)
+                        </option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Cantidad</label>
+            <input id="cantidadInput" type="number" class="form-control" min="1" value="1" />
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button id="addBtn" class="btn btn-primary w-100" type="button">Agregar</button>
+        </div>
+    </div>
+
+    <hr />
+
+    <h5>Detalle</h5>
+    <table class="table table-bordered" id="detalleTable">
+        <thead>
+            <tr>
+                <th>IdProducto</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Subtotal</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="d-flex justify-content-end">
+        <h4>Total: $<span id="totalSpan">0.00</span></h4>
+    </div>
+
+    <form asp-controller="Orders" asp-action="CreateOrder" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="orderJson" name="orderJson" />
+        <button id="submitOrderBtn" type="submit" class="btn btn-success">
+            Crear Orden
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        const items = [];
+
+        function render() {
+            const tbody = document.querySelector("#detalleTable tbody");
+            tbody.innerHTML = "";
+
+            let total = 0;
+
+            items.forEach((it, idx) => {
+                const subtotal = it.cantidad * it.precioUnitario;
+                total += subtotal;
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${it.idProducto}</td>
+                    <td>${it.nombre}</td>
+                    <td>${it.cantidad}</td>
+                    <td>${it.precioUnitario.toFixed(2)}</td>
+                    <td>${subtotal.toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger" onclick="removeItem(${idx})">X</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("totalSpan").innerText = total.toFixed(2);
+
+            // Armar el JSON EXACTO que espera tu API:
+            // { idCliente: X, detalles: [ {idProducto, cantidad, precioUnitario}, ... ] }
+            const idCliente = parseInt(document.getElementById("clienteSelect").value || "0");
+            const payload = {
+                idCliente: idCliente,
+                detalles: items.map(x => ({
+                    idProducto: x.idProducto,
+                    cantidad: x.cantidad,
+                    precioUnitario: x.precioUnitario
+                }))
+            };
+
+            document.getElementById("orderJson").value = JSON.stringify(payload);
+        }
+
+        window.removeItem = function(idx) {
+            items.splice(idx, 1);
+            render();
+        }
+
+        document.getElementById("addBtn").addEventListener("click", () => {
+            const prodSel = document.getElementById("productoSelect");
+            const idProducto = parseInt(prodSel.value || "0");
+            if (!idProducto) return alert("Seleccione un producto");
+
+            const nombre = prodSel.options[prodSel.selectedIndex].text;
+            const precio = parseFloat(prodSel.options[prodSel.selectedIndex].getAttribute("data-precio") || "0");
+            const stock = parseInt(prodSel.options[prodSel.selectedIndex].getAttribute("data-stock") || "0");
+
+            const cantidad = parseInt(document.getElementById("cantidadInput").value || "1");
+
+            if (cantidad < 1) return alert("Cantidad inválida");
+            if (cantidad > stock) return alert("Cantidad supera el stock disponible (validación UI).");
+
+            items.push({
+                idProducto: idProducto,
+                nombre: nombre,
+                cantidad: cantidad,
+                precioUnitario: precio
+            });
+
+            render();
+        });
+
+        document.getElementById("submitOrderBtn").addEventListener("click", (e) => {
+            const idCliente = document.getElementById("clienteSelect").value;
+            if (!idCliente) {
+                e.preventDefault();
+                return alert("Seleccione un cliente");
+            }
+            if (items.length === 0) {
+                e.preventDefault();
+                return alert("Agregue al menos un producto");
+            }
+            // render() ya armó orderJson
+        });
+
+        render();
+    </script>
+}

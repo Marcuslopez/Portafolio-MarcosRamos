@@ -1,0 +1,64 @@
+﻿<div class="container mt-4">
+    <h2>Dashboard</h2>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+    else
+    {
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Órdenes Creadas</h5>
+                    <h2>@ViewBag.Creadas</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Órdenes Pagadas</h5>
+                    <h2>@ViewBag.Pagadas</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Órdenes Anuladas</h5>
+                    <h2>@ViewBag.Anuladas</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-3">
+            <h5>Total Vendido (PAGADAS)</h5>
+            <h3>$@ViewBag.TotalVendido</h3>
+        </div>
+
+        <div class="card p-3">
+            <h5>Órdenes por Estado</h5>
+            <canvas id="chartEstados"></canvas>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const creadas = @ViewBag.Creadas;
+        const pagadas = @ViewBag.Pagadas;
+        const anuladas = @ViewBag.Anuladas;
+
+        const ctx = document.getElementById('chartEstados');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['CREADA', 'PAGADA', 'ANULADA'],
+                datasets: [{
+                    label: 'Órdenes',
+                    data: [creadas, pagadas, anuladas]
+                }]
+            }
+        });
+    </script>
+}

@@ -1,18 +1,18 @@
-﻿using System;
+﻿using ClassDomainMRL.Entities;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ClassDomainMRL.Entities;
+using Microsoft.Data.SqlClient;
+
 
 namespace ClassDataMRL.Interfaces
 
 {
     public interface IProductoRepository
-    {
+    {        
         IEnumerable<Producto> Listar();
+        int Guardar(Producto producto, string operacion);
         Producto ObtenerPorId(int idProducto);
-        void Guardar(Producto producto, string operacion);
+
+        void ActualizarStock(int idProducto, int cantidad, SqlConnection connection, SqlTransaction transaction);
     }
 
 
