@@ -12,7 +12,7 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
-
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -47,6 +47,9 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" href="/Dashboard">Dashboard</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/Notifications">Notificaciones</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -69,14 +72,21 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+   
 
-    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+    
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
 
+<!-- 1) Bootstrap bundle (para toasts) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 2) Socket.IO client -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+
 <script>
-    // ✅ Conexión al servicio Node
     const socket = io("http://localhost:4000");
 
     socket.on("connect", () => {
@@ -84,34 +94,55 @@
     });
 
     socket.on("event", (evt) => {
-      const msg = (evt && evt.message) ? evt.message : "Evento recibido";
-      showToast(msg);
+      console.log("EVENTO RECIBIDO:", evt);
+     //const actor = evt.data?.actor || null;      
+    const notif = {
+      type: evt.type || "event",
+      message: evt.message || "Evento recibido",
+      severity: (evt.data && evt.data.severity) ? evt.data.severity : "info",
+      entity: (evt.data && evt.data.entity) ? evt.data.entity : null,
+      entityId: (evt.data && evt.data.entityId) ? evt.data.entityId : null,
+      actor : evt.data?.actor || null,
+      data: evt.data || {},     
+      createdAt: new Date().toISOString()
+      
+    };
+
+      saveNotification(notif);
+      showToast(notif.message,notif.severity);
     });
 
-    socket.on("disconnect", () => {
-      console.log("Desconectado de RealtimeServiceNode");
-    });
+    function saveNotification(notif) {
+      const key = "notifications";
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
 
-    function showToast(message) {
+      list.unshift(notif);
+      localStorage.setItem(key, JSON.stringify(list.slice(0, 100)));
+    }
+
+    function showToast(message, severity) {
+      const cls = severity === "success" ? "text-bg-success"
+                : severity === "info" ? "text-bg-info"
+                : severity === "warning" ? "text-bg-warning"
+                : severity === "error" ? "text-bg-danger"
+                : "text-bg-primary";
+                
       const container = document.getElementById("toastContainer");
       if (!container) return;
 
       const id = "toast_" + Date.now();
 
       container.insertAdjacentHTML("beforeend", `
-        <div id="${id}" class="toast align-items-center text-bg-primary border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="${id}" class="toast align-items-center ${cls} border-0 mb-2">
           <div class="d-flex">
             <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"></button>
           </div>
         </div>
       `);
 
       const toastEl = document.getElementById(id);
-      const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
-      toast.show();
-
-      // Limpiar del DOM cuando termine
-      toastEl.addEventListener("hidden.bs.toast", () => toastEl.remove());
+      new bootstrap.Toast(toastEl, { delay: 3000 }).show();
     }
 </script>

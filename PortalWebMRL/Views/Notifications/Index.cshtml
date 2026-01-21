@@ -1,0 +1,75 @@
+﻿<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Historial de Notificaciones</h2>
+        <button class="btn btn-danger" id="btnClear" type="button">Limpiar</button>
+    </div>
+
+    <table class="table table-bordered table-striped" id="notifTable">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Severidad</th>
+                <th>Tipo</th>
+                <th>Mensaje</th>
+                <th>Usuario</th>
+            </tr>
+        </thead>
+        <tbody id="notifBody"></tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        function loadNotifications() {
+          const list = JSON.parse(localStorage.getItem("notifications") || "[]");
+          const tbody = document.getElementById("notifBody");
+          tbody.innerHTML = "";
+
+          list.forEach(n => {
+            const tr = document.createElement("tr");
+            const date = new Date(n.createdAt).toLocaleString();
+
+                      const severityClass =
+                              n.severity === "success"   ? "text-success fw-bold"
+                            : n.severity === "warning"   ? "text-warning fw-bold"
+                            : n.severity === "info"      ? "text-info fw-bold"
+                            : n.severity === "undefined" ? "text-undefined fw-bold"
+                            : n.severity === "null"      ? "text-null fw-bold"
+                            : n.severity === "error"     ? "text-danger fw-bold"
+                            : "text-primary";
+        
+            const userText = n.actor? (n.actor.Email || n.actor.Nombre ||" Id:"|| n.actor.UserId || "") : "";
+
+            tr.innerHTML = `
+              <td>${date}</td>
+              <td class="${severityClass}">${n.severity}</td>
+              <td>${n.type}</td>
+              <td>${n.message}</td>
+              <td class="${"text-primary"}">${userText}</td>
+
+              <td>
+                ${n.entity === "order" ? `<a class="btn btn-sm btn-info" href="/Orders/Details/${n.entityId}">Ver Orden</a>` : ""}
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+
+          document.getElementById("btnClear").addEventListener("click", () => {
+          localStorage.removeItem("notifications");
+          loadNotifications();
+        });
+
+
+
+        // ✅ Cargar al abrir la página
+
+
+        loadNotifications();
+
+
+        // ✅ Refrescar cada 1s por si llegan eventos mientras estás en la pantalla
+        setInterval(loadNotifications, 1000);
+    </script>
+}
+-

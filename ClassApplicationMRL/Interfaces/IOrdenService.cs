@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ClassApplicationMRL.Services;
+using ClassDomainMRL.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ClassDomainMRL.DTOs;
 
 namespace ClassApplicationMRL.Interfaces
 {
@@ -16,6 +17,7 @@ namespace ClassApplicationMRL.Interfaces
         OrdenResponseDto ObtenerOrdenPorId(int idOrden);
 
         void CambiarEstado(int idOrden, string nuevoEstado);
+
 
 
     }

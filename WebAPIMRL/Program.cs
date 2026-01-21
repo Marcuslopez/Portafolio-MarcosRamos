@@ -124,7 +124,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<WebAPIMRL.Services.RealtimeNotifier>();
 
 
 var app = builder.Build();

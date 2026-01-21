@@ -30,6 +30,7 @@ namespace WebAPIMRL.Controllers
             var passwordHash = request.Password;
 
             var user = _authRepository.Login(request.Email, passwordHash);
+
             if (user == null) return Unauthorized("Credenciales inválidas.");
 
             var jwt = _configuration.GetSection("Jwt");
