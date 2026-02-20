@@ -1,0 +1,277 @@
+﻿@using PortalWebMRL.Models
+@using System.Text.Json
+@{  
+    var productos = ViewBag.Productos as List<ProductoOptionViewModel>;
+
+   
+}
+
+
+
+<div class="container mt-4">
+    <h2>Cotización</h2>
+
+    <div class="row g-2 mb-3">
+
+        <div class="col-md-3">
+            <label class="form-label">Producto</label>
+        <input id="txtBuscar"
+               class="form-control"
+               placeholder="Buscar producto..."
+               autocomplete="off" />
+            <div id="sugerencias" class="list-group" style="position:relative; z-index:999;"></div>
+        </div>
+       
+        <!-- Hidden para guardar el Id seleccionado -->
+        <input  class="form-control" id="IdProducto" name="IdProducto" type="hidden" />
+        
+
+        <div class="col-md-2">
+            <label class="form-label">Precio</label>
+            <input class="form-control" id="pPrecio" type="number" step="0.01" value="0" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Cantidad</label>
+            <input class="form-control" id="pCantidad" type="number" value="1" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">IdProducto</label>
+            <input class="form-control" id="pId" type="number" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" id="btnAdd">Agregar</button>
+        </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-2">
+            <label class="form-label">Descuento %</label>
+            <input class="form-control" id="descuentoPct" type="number" step="0.01" value="0.00" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Impuesto %</label>
+            <input class="form-control" id="impuestoPct" type="number" step="0.01" value="0.07" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-success w-100" id="btnQuote">Cotizar</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered" id="itemsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="card p-3">
+        <div><b>Subtotal:</b> <span id="rSubtotal">0</span></div>
+        <div><b>Descuento:</b> <span id="rDescuento">0</span></div>
+        <div><b>Impuesto:</b> <span id="rImpuesto">0</span></div>
+        <div><b>Total:</b> <span id="rTotal">0</span></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+
+//inicia Buscar producto
+         
+
+  // Pasar la lista del servidor a JS
+  const productos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(productos));
+
+
+  const input = document.getElementById("txtBuscar");
+  const box = document.getElementById("sugerencias");
+  const hiddenId = document.getElementById("IdProducto");
+  const vnombre = document.getElementById("txtBuscar");
+  const vprecio = document.getElementById("pPrecio");
+  const vid = document.getElementById("pId");
+                       
+
+  let seleccionIndex = -1;
+  let visibles = [];
+
+  input.addEventListener("input", () => {
+    const q = input.value.trim().toLowerCase();
+    hiddenId.value = "";               // si cambias texto, ya no hay selección fija
+    seleccionIndex = -1;
+
+    if (!q) { box.innerHTML = ""; return; }
+
+    // filtrar por nombre
+    visibles = productos
+      .filter(p => (p.nombre ?? p.Nombre ?? "").toLowerCase().includes(q))
+      .slice(0, 8);
+
+    render();
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (!visibles.length) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      seleccionIndex = Math.min(seleccionIndex + 1, visibles.length - 1);
+      render();
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      seleccionIndex = Math.max(seleccionIndex - 1, 0);
+      render();
+    }
+    if (e.key === "Enter") {
+      if (seleccionIndex >= 0) {
+        e.preventDefault();
+        elegir(visibles[seleccionIndex]);
+      }
+    }
+    if (e.key === "Escape") {
+      box.innerHTML = "";
+    }
+  });
+
+  // cerrar sugerencias al hacer click fuera
+  document.addEventListener("click", (e) => {
+    if (!box.contains(e.target) && e.target !== input) box.innerHTML = "";
+  });
+
+  function render() {
+    const q = input.value.trim();
+    box.innerHTML = "";
+
+    visibles.forEach((p, i) => {
+      const nombre = p.Nombre ?? "";
+            
+      const a = document.createElement("button");
+      a.type = "button";
+      a.className = "list-group-item list-group-item-action";
+      if (i === seleccionIndex) a.classList.add("active");
+
+      // resaltado simple del texto buscado
+      a.innerHTML = highlight(nombre, q);
+
+
+                     
+
+      a.addEventListener("click", () => elegir(p));
+      box.appendChild(a);
+    });
+  }
+
+  function elegir(p) {
+      
+    const pnombre = p.Nombre ?? "";
+    const id =  p.IdProducto ?? "";
+    const pprecio = p.Precio ?? "";
+    input.value = pnombre;
+    hiddenId.value = id;    
+    vid.value= id;
+    vnombre.value = pnombre;
+    vprecio.value = pprecio;
+    box.innerHTML = "";
+  }
+
+  function highlight(text, q) {
+    if (!q) return escapeHtml(text);
+    const idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx < 0) return escapeHtml(text);
+
+    const before = escapeHtml(text.slice(0, idx));
+    const match  = escapeHtml(text.slice(idx, idx + q.length));
+    const after  = escapeHtml(text.slice(idx + q.length));
+    return `${before}<strong>${match}</strong>${after}`;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+//Fin Buscar producto
+        const items = [];
+
+        function renderItems() {
+          const tbody = document.querySelector("#itemsTable tbody");
+          tbody.innerHTML = "";
+
+          items.forEach((it, idx) => {
+            const sub = (it.precio * it.cantidad).toFixed(2);
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${it.idProducto}</td>
+              <td>${it.nombre}</td>
+              <td>${it.precio.toFixed(2)}</td>
+              <td>${it.cantidad}</td>
+              <td>${sub}</td>
+              <td><button class="btn btn-sm btn-danger" data-idx="${idx}">X</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          tbody.querySelectorAll("button[data-idx]").forEach(btn => {
+            btn.addEventListener("click", () => {
+              const idx = parseInt(btn.getAttribute("data-idx"));
+              items.splice(idx, 1);
+              renderItems();
+            });
+          });
+        }
+
+        document.getElementById("btnAdd").addEventListener("click", () => {
+          const idProducto = parseInt(document.getElementById("pId").value || "0");
+          const nombre = document.getElementById("txtBuscar").value || "";          
+          const precio = parseFloat(document.getElementById("pPrecio").value || "0");          
+          const cantidad = parseInt(document.getElementById("pCantidad").value || "1");
+
+          if (!nombre || precio <= 0 || cantidad <= 0) {
+            alert("Completa nombre, precio > 0 y cantidad > 0");
+            return;
+          }
+
+          items.push({ idProducto, nombre, precio, cantidad, idCategoria: null });
+          renderItems();
+        });
+
+        document.getElementById("btnQuote").addEventListener("click", async () => {
+          if (items.length === 0) {
+            alert("Agrega al menos un producto.");
+            return;
+          }
+
+          const descuentoPct = parseFloat(document.getElementById("descuentoPct").value || "0");
+          const impuestoPct = parseFloat(document.getElementById("impuestoPct").value || "0.07");
+
+          const payload = { items, descuentoPct, impuestoPct };
+
+          const resp = await fetch("http://localhost:5001/api/quote", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (!resp.ok) {
+            const t = await resp.text();
+            alert("Error cotizando: " + t);
+            return;
+          }
+
+          const r = await resp.json();
+          document.getElementById("rSubtotal").innerText = r.subtotal.toFixed(2);
+          document.getElementById("rDescuento").innerText = r.descuentoMonto.toFixed(2);
+          document.getElementById("rImpuesto").innerText = r.impuestoMonto.toFixed(2);
+          document.getElementById("rTotal").innerText = r.total.toFixed(2);
+        });
+
+        renderItems();
+    </script>
+}

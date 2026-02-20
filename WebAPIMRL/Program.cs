@@ -124,9 +124,26 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
+var allowedOrigins = "AllowedOrigins";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: allowedOrigins, policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200") // Angular dev server
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // si luego usas cookies/signalR; si no, igual funciona
+    });
+});
+
+
+
+
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<WebAPIMRL.Services.RealtimeNotifier>();
-
 
 var app = builder.Build();
 
@@ -144,6 +161,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(allowedOrigins);
 
 // 👉 Manejo de excepciones
 app.UseMiddleware<ExceptionMiddleware>();
