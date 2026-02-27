@@ -1,212 +1,202 @@
-ERP LITE – API REST (.NET)
+# ERP Lite -- Enterprise Full Stack Architecture Portfolio
 
-Sistema ERP Lite desarrollado como proyecto de portafolio, enfocado en demostrar buenas prácticas de arquitectura por capas, seguridad, transacciones y acceso a datos con SQL Server.
+## Overview
 
-Nombre del Proyecto: Master Portafolio
-El proyecto implementa un flujo real de negocio:
-Productos → Clientes → Órdenes con Detalle,
-incluyendo validación de stock y rollback automático ante errores.
+ERP Lite is a modular enterprise-style system developed as a
+professional portfolio project to demonstrate advanced backend
+architecture, security, transactional integrity, and multi-technology
+integration.
 
+This project showcases a clean layered architecture using .NET 8, SQL
+Server with Stored Procedures, Node.js (Realtime), Python (Computation
+Engine), and modern frontend integrations.
 
-============================================================
-TECNOLOGÍAS UTILIZADAS
-============================================================
+------------------------------------------------------------------------
 
-- ASP.NET Core 8 (Web API)
-- C#
-- SQL Server
-- ADO.NET (Microsoft.Data.SqlClient)
-- Stored Procedures
-- JWT (JSON Web Tokens)
-- Swagger / OpenAPI
-- Inyección de Dependencias
-- Middleware global de errores
+# Architecture Overview
 
+Frontend (MVC / Angular) │ ▼ ASP.NET Core Web API (.NET 8) │ ├── SQL
+Server (Stored Procedures + Transactions) ├── Node.js Realtime Service
+(Socket.IO) └── Python Quote Engine (FastAPI)
 
-============================================================
-ARQUITECTURA DEL PROYECTO
-============================================================
+------------------------------------------------------------------------
 
-Arquitectura por capas, con separación clara de responsabilidades:
+# Technology Stack
 
-WebAPIMRL
-  - Controllers (API / HTTP)
+## Backend
 
-ClassApplicationMRL
-  - Services (Lógica de negocio y transacciones)
+-   ASP.NET Core 8
+-   ADO.NET
+-   SQL Server
+-   Stored Procedures
+-   JWT Authentication
+-   Role-Based Authorization
+-   Policy-Based Authorization
+-   Swagger
 
-ClassDataMRL
-  - Interfaces (Contratos de acceso a datos)
-  - Repositories (ADO.NET + Stored Procedures)
+## Realtime
 
-ClassDomainMRL
-  - Entities (Modelos de dominio)
-  - DTOs (Objetos de transferencia)
+-   Node.js
+-   Express
+-   Socket.IO
 
+## Computation Engine
 
-Principios aplicados:
-- Controllers sin lógica de negocio
-- Services controlan transacciones
-- Repositories encapsulan acceso a datos
-- Dominio desacoplado de infraestructura
+-   Python
+-   FastAPI
 
+## Frontend
 
-============================================================
-SEGURIDAD
-============================================================
+-   ASP.NET MVC
+-   Angular 21
+-   Bootstrap
+-   JavaScript
 
-- Autenticación mediante JWT
-- Autorización por Roles y Policies
-- Endpoints protegidos con [Authorize]
-- Tokens firmados con clave simétrica
+## Cloud & DevOps
 
-Ejemplo de roles:
-- Administrador
-- Vendedor
-- Usuario
+-   Azure App Service (Linux)
+-   Azure SQL Database
+-   Azure Container Apps
+-   GitHub
 
+------------------------------------------------------------------------
 
-============================================================
-FUNCIONALIDADES IMPLEMENTADAS
-============================================================
+# Project Structure
 
-PRODUCTOS
-- CRUD completo
-- Manejo de stock
-- Actualización segura desde órdenes
+MasterPortafolio ├── WebAPIMRL → REST API (.NET 8) ├──
+ClassApplicationMRL → Business Logic Layer ├── ClassDataMRL → Data
+Access Layer ├── ERPLite.Domain → Entities & DTOs ├──
+RealtimeServiceNode → WebSocket Service ├── QuoteServiceNode → Quote
+Orchestrator (Node) ├── QuoteEnginePython → Calculation Engine (Python)
+├── PortalWebMRL → MVC Web Portal └── PortalAngularMRL → SPA Angular 21
 
-CLIENTES
-- CRUD completo
-- Validación básica de datos
+------------------------------------------------------------------------
 
-ÓRDENES (MÓDULO PRINCIPAL)
-- Crear orden con múltiples productos
-- Detalle de orden
-- Validación de stock en base de datos
-- Transacciones completas (Commit / Rollback)
-- Consulta de órdenes:
-  - Listado general
-  - Orden con detalle
+# Security Architecture
 
+-   JWT Authentication
+-   Role-based authorization
+-   Policy-based authorization (AdminByIdRol)
+-   Token validation with issuer and audience
+-   Secure CORS configuration
+-   Separation of DTOs and Entities
 
-============================================================
-MANEJO DE TRANSACCIONES
-============================================================
+Roles Implemented: - Administrator - User
 
-Las transacciones se controlan en la capa Service, no en los Stored Procedures.
+------------------------------------------------------------------------
 
-Flujo:
-Crear Orden
- → Insertar Orden
- → Insertar Detalles
- → Actualizar Stock
- → Commit / Rollback
+# Database Design
 
-Si el stock es insuficiente:
-- SQL lanza excepción
-- El Service hace rollback
-- No se inserta la orden
-- No se descuenta stock
+-   SQL Server
+-   Fully stored procedure-driven CRUD
+-   Operations controlled by flags:
+    -   OpAdd
+    -   OpMod
+    -   OpDel
+    -   OpGet
+    -   OpList
+-   Transactional order creation
+-   Stock validation at database level
+-   Logical delete via Activo flag
 
+------------------------------------------------------------------------
 
-============================================================
-MIDDLEWARE GLOBAL DE ERRORES
-============================================================
+# Core Functionalities
 
-Se implementa un middleware global para:
+## Products
 
-- Capturar excepciones
-- Retornar respuestas JSON consistentes
-- Diferenciar errores SQL (400)
-- Manejar errores internos (500)
-- Evitar duplicar try/catch en controllers
+-   Create / Update / List
+-   Stock control
+-   Category association
+-   Logical activation/deactivation
 
-Ejemplo de respuesta:
+## Clients
 
-{
-  "status": 400,
-  "message": "Ocurrió un error durante el procesamiento de la solicitud.",
-  "detail": "Stock insuficiente para el producto"
-}
+-   Full CRUD
+-   Linked to Orders
 
+## Orders
 
-============================================================
-ENDPOINTS PRINCIPALES
-============================================================
+-   Transactional creation with detail
+-   Stock validation
+-   Status transitions:
+    -   Created
+    -   Paid
+    -   Cancelled
+-   Real-time notifications
 
-AUTENTICACIÓN
-- POST /api/auth/login
+## Quotation Engine
 
-PRODUCTOS
-- GET    /api/products
-- POST   /api/products
-- PUT    /api/products
-- DELETE /api/products/{id}
+-   Multi-item calculation
+-   Discount percentage
+-   Tax percentage
+-   Externalized calculation via Python engine
 
-CLIENTES
-- GET  /api/clients
-- POST /api/clients
+## Realtime Notifications
 
-ÓRDENES
-- POST /api/orders
-- GET  /api/orders
-- GET  /api/orders/{id}
+-   Socket.IO implementation
+-   Severity levels (success, warning, error, info)
+-   LocalStorage persistence
+-   Event broadcasting after order changes
 
+------------------------------------------------------------------------
 
-============================================================
-BASE DE DATOS
-============================================================
+# Deployment Strategy (Azure)
 
-- SQL Server
-- Acceso mediante Stored Procedures
-- Un Stored Procedure por entidad
-- Operaciones controladas por flags:
+Recommended Production Architecture:
 
-  OpAdd
-  OpMod
-  OpDel
-  OpGet
-  OpList
-  OpUpdateStock
+-   API → Azure App Service (Linux B1)
+-   Database → Azure SQL Database
+-   Node Realtime → Azure Container Apps
+-   Python Engine → Azure Container Apps
+-   Angular → Azure Static Web Apps
 
-Ejemplo:
+------------------------------------------------------------------------
 
-EXEC sp_Productos
-    @Operacion = 'OpUpdateStock',
-    @IdProducto = 1,
-    @Cantidad = 10;
+# Running Locally
 
+## Database
 
-============================================================
-CÓMO EJECUTAR EL PROYECTO
-============================================================
+-   Execute SQL scripts
+-   Configure connection string in appsettings.json
 
-1. Clonar el repositorio
-2. Ejecutar los scripts SQL (tablas y stored procedures)
-3. Configurar la cadena de conexión en appsettings.json
-4. Ejecutar la API desde Visual Studio
-5. Acceder a Swagger desde el navegador
+## API
 
-Ejemplo:
-https://localhost:{puerto}/swagger
+dotnet run
 
+## Realtime Node
 
-============================================================
-OBJETIVO DEL PROYECTO
-============================================================
+cd RealtimeServiceNode npm install node server.js
 
-Este proyecto fue desarrollado con fines de portafolio profesional, demostrando:
+## Quote Engine
 
-- Buen diseño de arquitectura
-- Dominio de ASP.NET Web API
-- Uso correcto de SQL Server y transacciones
-- Seguridad con JWT
-- Código mantenible y escalable
+cd QuoteEnginePython uvicorn main:app --port 8001 --reload
 
+## Angular
 
-============================================================
-AUTOR
-============================================================
+cd PortalAngularMRL ng serve
 
-Desarrollado por: Marcos Rodolfo Ramos Lopez
-Perfil enfocado en Backend .NET / APIs / SQL Server
+------------------------------------------------------------------------
+
+# Architectural Principles Demonstrated
+
+-   Clean layered architecture
+-   Separation of concerns
+-   Transaction management
+-   Multi-language microservice integration
+-   Secure authentication design
+-   Enterprise-ready REST design
+-   Realtime event-driven integration
+-   Cloud deployment readiness
+
+------------------------------------------------------------------------
+
+# Professional Objective
+
+This project demonstrates enterprise backend engineering capabilities,
+security best practices, distributed system integration, and full-stack
+architectural understanding suitable for mid-to-senior backend roles.
+
+------------------------------------------------------------------------
+
+Author: Professional Full Stack Developer Portfolio Project
